@@ -61,6 +61,31 @@ npm run build
 npm run preview
 ```
 
+## Deploy on Vercel (single project)
+
+This repo is set up to deploy **everything together** on Vercel: Vite builds the
+UI into `dist/`, and `api/index.js` exposes the Express API as a serverless
+function. `vercel.json` routes `/api/*` to the function and handles SPA route
+refreshes.
+
+1. Import this repo into Vercel (no root directory changes needed).
+2. Add these **Environment Variables** in the Vercel project:
+
+   | Variable           | Value                                    |
+   | ------------------ | ---------------------------------------- |
+   | `MONGODB_URI`      | your Atlas connection string             |
+   | `MONGODB_DB`       | `gvp_fee_portal`                         |
+   | `JWT_SECRET`       | a long random string                     |
+   | `ALLOW_DEMO_RESET` | `true` or `false`                        |
+   | `VITE_API_URL`     | optional — leave unset (defaults to `/api`) |
+
+   Do **not** set `PORT`; Vercel manages it. `AUTO_SEED` is not used on Vercel —
+   seed once from your machine with `npm run seed`.
+
+3. In MongoDB Atlas → **Network Access**, allow `0.0.0.0/0` so Vercel's
+   serverless functions can connect.
+4. Deploy. The API is available at `https://<project>.vercel.app/api`.
+
 ## Scripts
 
 | Script            | Description                                  |

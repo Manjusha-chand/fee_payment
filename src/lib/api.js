@@ -1,7 +1,6 @@
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace(
-  /\/$/,
-  '',
-)
+// Same-origin API by default: Vercel serves /api/* from serverless functions,
+// and the dev server proxies /api to the Express API on port 5000.
+const BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '')
 
 class ApiError extends Error {
   constructor(message, status) {
@@ -25,7 +24,7 @@ async function request(path, { token, method = 'GET', body } = {}) {
     })
   } catch {
     throw new ApiError(
-      'Cannot reach the server. Make sure the API is running on port 5000.',
+      'Cannot reach the server. Check your connection or the API URL.',
       0,
     )
   }

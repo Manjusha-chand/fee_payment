@@ -395,7 +395,11 @@ async function start() {
   })
 }
 
-start().catch((error) => {
-  console.error('Failed to start API:', error.message)
-  process.exit(1)
-})
+export { app }
+
+if (!process.env.VERCEL) {
+  start().catch((error) => {
+    console.error('Failed to start API:', error.message)
+    process.exit(1)
+  })
+}
