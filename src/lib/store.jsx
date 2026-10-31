@@ -1,178 +1,148 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { createSeed } from '../data/seed.js'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import { api } from './api.js'
 
-const DB_KEY = 'feepay.db.v1'
 const SESSION_KEY = 'feepay.session.v1'
+const EMPTY_DB = { office: null, students: [], payments: [] }
 
 const AppContext = createContext(null)
-
-function loadDb() {
-  try {
-    const raw = localStorage.getItem(DB_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (parsed?.students && parsed?.payments && parsed?.office) return parsed
-    }
-  } catch {
-    // fall through to a fresh seed
-  }
-  return createSeed()
-}
 
 function loadSession() {
   try {
     const raw = localStorage.getItem(SESSION_KEY)
-    return raw ? JSON.parse(raw) : null
+    const parsed = raw ? JSON.parse(raw) : null
+    return parsed?.token ? parsed : null
   } catch {
     return null
   }
 }
 
-function nextReceiptNo(db) {
-  const verified = db.payments.filter((payment) => payment.status === 'verified')
-  const year = new Date().getFullYear()
-  return `FEE/${year}/${String(verified.length + 1).padStart(4, '0')}`
+function saveSession(session) {
+  if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+  else localStorage.removeItem(SESSION_KEY)
 }
 
 export function AppProvider({ children }) {
-  const [db, setDb] = useState(loadDb)
   const [session, setSession] = useState(loadSession)
+  const [db, setDb] = useState(EMPTY_DB)
+  const [loading, setLoading] = useState(() => Boolean(loadSession()?.token))
+  const [bootError, setBootError] = useState('')
+
+  const sessionRef = useRef(session)
+  sessionRef.current = session
+
+  const clearSession = useCallback(() => {
+    saveSession(null)
+    setSession(null)
+    setDb(EMPTY_DB)
+    setLoading(false)
+    setBootError('')
+  }, [])
+
+  const refresh = useCallback(async () => {
+    const current = sessionRef.current
+    if (!current?.token) {
+      setLoading(false)
+      return
+    }
+    try {
+      const data = await api.bootstrap(current.token)
+      setDb({
+        office: data.office ?? null,
+        students: data.students ?? [],
+        payments: data.payments ?? [],
+      })
+      setBootError('')
+    } catch (error) {
+      if (error.status === 401 || error.status === 403) {
+        clearSession()
+      }
+      setBootError(error.message)
+    } finally {
+      setLoading(false)
+    }
+  }, [clearSession])
 
   useEffect(() => {
-    localStorage.setItem(DB_KEY, JSON.stringify(db))
-  }, [db])
-
-  useEffect(() => {
-    if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session))
-    else localStorage.removeItem(SESSION_KEY)
-  }, [session])
+    if (!session?.token) {
+      setDb(EMPTY_DB)
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    refresh()
+  }, [session?.token, refresh])
 
   const user = useMemo(() => {
     if (!session) return null
-    if (session.role === 'office') return { ...db.office, role: 'office' }
+    if (session.role === 'office') {
+      return db.office ? { ...db.office, role: 'office' } : null
+    }
     const student = db.students.find((item) => item.id === session.id)
     return student ? { ...student, role: 'student' } : null
   }, [session, db])
 
-  function login(role, identifier, password) {
-    const value = identifier.trim().toLowerCase()
-
-    if (role === 'office') {
-      const office = db.office
-      const matchesId = value === office.userId.toLowerCase()
-      const matchesEmail = value === office.email.toLowerCase()
-      if ((matchesId || matchesEmail) && password === office.password) {
-        setSession({ role: 'office', id: office.id })
-        return { ok: true }
-      }
-      return { ok: false, error: 'Invalid office user ID or password.' }
+  async function login(role, identifier, password) {
+    try {
+      const data = await api.login({ role, identifier, password })
+      const next = { token: data.token, role: data.user.role, id: data.user.id }
+      saveSession(next)
+      setSession(next)
+      return { ok: true }
+    } catch (error) {
+      return { ok: false, error: error.message }
     }
-
-    const student = db.students.find(
-      (item) =>
-        item.rollNumber.toLowerCase() === value ||
-        item.email.toLowerCase() === value,
-    )
-    if (!student || student.password !== password) {
-      return { ok: false, error: 'Invalid roll number or password.' }
-    }
-    setSession({ role: 'student', id: student.id })
-    return { ok: true }
   }
 
-  function logout() {
-    setSession(null)
-  }
-
-  function addPayment({ studentId, amount, method, transactionId, paidOn, note }) {
-    const payment = {
-      id: `pay-${Date.now()}`,
-      studentId,
-      amount: Number(amount),
-      method,
-      transactionId: transactionId.trim(),
-      paidOn: new Date(`${paidOn}T09:00:00`).toISOString(),
-      note: note?.trim() || '',
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    }
-    setDb((prev) => ({ ...prev, payments: [payment, ...prev.payments] }))
+  async function addPayment(values) {
+    const token = sessionRef.current?.token
+    const payment = await api.createPayment(token, values)
+    await refresh()
     return payment
   }
 
-  function reviewPayment(paymentId, decision, reason = '') {
-    setDb((prev) => {
-      const payments = prev.payments.map((payment) => {
-        if (payment.id !== paymentId) return payment
-        if (decision === 'verify') {
-          return {
-            ...payment,
-            status: 'verified',
-            receiptNo: payment.receiptNo || nextReceiptNo(prev),
-            verifiedBy: prev.office.name,
-            verifiedOn: new Date().toISOString(),
-            rejectionReason: undefined,
-          }
-        }
-        return {
-          ...payment,
-          status: 'rejected',
-          verifiedBy: prev.office.name,
-          verifiedOn: new Date().toISOString(),
-          rejectionReason:
-            reason.trim() || 'Payment details could not be verified.',
-        }
-      })
-      return { ...prev, payments }
-    })
+  async function reviewPayment(paymentId, decision, reason = '') {
+    const token = sessionRef.current?.token
+    const payment = await api.reviewPayment(token, paymentId, { decision, reason })
+    await refresh()
+    return payment
   }
 
-  function addStudent(values) {
-    const student = {
-      id: `st-${Date.now()}`,
-      rollNumber: values.rollNumber.trim().toUpperCase(),
-      name: values.name.trim(),
-      email: values.email.trim(),
-      phone: values.phone?.trim() || '',
-      course: values.course.trim(),
-      semester: Number(values.semester),
-      password: values.password || 'student123',
-      totalFee: Number(values.totalFee),
-    }
-    setDb((prev) => ({ ...prev, students: [...prev.students, student] }))
+  async function addStudent(values) {
+    const token = sessionRef.current?.token
+    const student = await api.addStudent(token, values)
+    await refresh()
     return student
   }
 
-  function updateStudent(studentId, values) {
-    setDb((prev) => ({
-      ...prev,
-      students: prev.students.map((student) =>
-        student.id === studentId
-          ? {
-              ...student,
-              name: values.name.trim(),
-              email: values.email.trim(),
-              phone: values.phone?.trim() || '',
-              course: values.course.trim(),
-              semester: Number(values.semester),
-              totalFee: Number(values.totalFee),
-            }
-          : student,
-      ),
-    }))
+  async function updateStudent(studentId, values) {
+    const token = sessionRef.current?.token
+    const student = await api.updateStudent(token, studentId, values)
+    await refresh()
+    return student
   }
 
-  function resetDemo() {
-    setDb(createSeed())
-    setSession(null)
+  async function resetDemo() {
+    await api.resetDemo()
+    clearSession()
   }
 
   const value = {
     db,
     session,
     user,
+    loading,
+    bootError,
     login,
-    logout,
+    logout: clearSession,
+    refresh,
     addPayment,
     reviewPayment,
     addStudent,

@@ -1,8 +1,10 @@
 export const COLLEGE = {
-  name: 'Sunrise Institute of Technology',
-  shortName: 'SIT',
+  name: 'Gayatri Vidya Parishad College of Engineering',
+  headerLine1: 'GAYATRI VIDYA PARISHAD',
+  headerLine2: 'College of Engineering',
+  shortName: 'GVP',
   tagline: 'Online Fee Payment Portal',
-  address: 'Knowledge Park, Hyderabad, Telangana 500001',
-  upiId: 'fees@sunrise.edu',
+  address: 'Rushikonda, Visakhapatnam, Andhra Pradesh 530045',
+  upiId: 'fees@gvp.edu.in',
   bank: 'State Bank of India — A/C 3021 4567 8901',
 }

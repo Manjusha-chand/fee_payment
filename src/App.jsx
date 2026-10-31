@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import { useApp } from './lib/store.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import LoadingScreen from './components/LoadingScreen.jsx'
 import Login from './pages/Login.jsx'
 import StudentDashboard from './pages/student/StudentDashboard.jsx'
 import PayFees from './pages/student/PayFees.jsx'
@@ -11,7 +12,8 @@ import Students from './pages/office/Students.jsx'
 import NotFound from './pages/NotFound.jsx'
 
 function HomeRedirect() {
-  const { user } = useApp()
+  const { user, loading } = useApp()
+  if (loading) return <LoadingScreen />
   if (!user) return <Navigate to="/login" replace />
   return <Navigate to={user.role === 'office' ? '/office' : '/student'} replace />
 }

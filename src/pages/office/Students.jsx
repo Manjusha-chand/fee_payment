@@ -32,6 +32,7 @@ export default function Students() {
   const [form, setForm] = useState(emptyForm)
   const [errors, setErrors] = useState({})
   const [notice, setNotice] = useState('')
+  const [busy, setBusy] = useState(false)
 
   const query = search.trim().toLowerCase()
   const visible = useMemo(
@@ -76,6 +77,7 @@ export default function Students() {
     setEditing(null)
     setForm(emptyForm)
     setErrors({})
+    setBusy(false)
   }
 
   function update(field, value) {
@@ -124,20 +126,27 @@ export default function Students() {
     return next
   }
 
-  function handleSave(event) {
+  async function handleSave(event) {
     event.preventDefault()
+    if (busy) return
     const next = validate()
     setErrors(next)
     if (Object.keys(next).length > 0) return
 
-    if (editing) {
-      updateStudent(editing.id, form)
-      setNotice(`${form.name.trim()}'s details were updated.`)
-    } else {
-      addStudent(form)
-      setNotice(`${form.name.trim()} was added. Login password: ${form.password}`)
+    setBusy(true)
+    try {
+      if (editing) {
+        await updateStudent(editing.id, form)
+        setNotice(`${form.name.trim()}'s details were updated.`)
+      } else {
+        await addStudent(form)
+        setNotice(`${form.name.trim()} was added. Login password: ${form.password}`)
+      }
+      closeModal()
+    } catch (error) {
+      setErrors({ form: error.message })
+      setBusy(false)
     }
-    closeModal()
   }
 
   return (
@@ -280,16 +289,21 @@ export default function Students() {
         }
         footer={
           <>
-            <button onClick={closeModal} className="btn-secondary">
+            <button onClick={closeModal} className="btn-secondary" disabled={busy}>
               Cancel
             </button>
-            <button onClick={handleSave} className="btn-primary">
-              {editing ? 'Save changes' : 'Add student'}
+            <button onClick={handleSave} className="btn-primary" disabled={busy}>
+              {busy ? 'Saving…' : editing ? 'Save changes' : 'Add student'}
             </button>
           </>
         }
       >
         <form onSubmit={handleSave} className="grid gap-4 sm:grid-cols-2">
+          {errors.form && (
+            <div className="sm:col-span-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-700">
+              {errors.form}
+            </div>
+          )}
           <div className="sm:col-span-2">
             <label htmlFor="name" className="label">
               Full name

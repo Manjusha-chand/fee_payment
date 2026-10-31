@@ -4,6 +4,11 @@ export const RECEIPT_TEMPLATE_PATH = `${import.meta.env.BASE_URL}receipt-templat
 
 // Position of each value on your template, measured in PDF points from the
 // bottom-left corner. Adjust x / y / size to line up with the blank fields.
+// Optional: place the authorised signature on your own template.
+// Set to an object like { x: 390, y: 160, scale: 1, color: [0.1, 0.2, 0.55] }
+// or leave as null if your template already contains a signature.
+export const TEMPLATE_SIGNATURE = null
+
 export const TEMPLATE_FIELDS = {
   studentName: { x: 150, y: 610, size: 12, maxWidth: 300 },
   rollNumber: { x: 150, y: 582, size: 12, maxWidth: 300 },

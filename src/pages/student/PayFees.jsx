@@ -34,6 +34,7 @@ export default function PayFees() {
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   function update(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -75,21 +76,29 @@ export default function PayFees() {
     return next
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
+    if (submitting) return
     const next = validate()
     setErrors(next)
     if (Object.keys(next).length > 0) return
 
-    const payment = addPayment({
-      studentId: user.id,
-      amount: Number(form.amount),
-      method: form.method,
-      transactionId: form.transactionId,
-      paidOn: form.paidOn,
-      note: form.note,
-    })
-    setSubmitted(payment)
+    setSubmitting(true)
+    try {
+      const payment = await addPayment({
+        studentId: user.id,
+        amount: Number(form.amount),
+        method: form.method,
+        transactionId: form.transactionId,
+        paidOn: form.paidOn,
+        note: form.note,
+      })
+      setSubmitted(payment)
+    } catch (error) {
+      setErrors({ form: error.message })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   function payAgain() {
@@ -316,12 +325,20 @@ export default function PayFees() {
                   by the fee section.
                 </div>
 
+                {errors.form && (
+                  <div className="mt-5 flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-700">
+                    <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                    <span>{errors.form}</span>
+                  </div>
+                )}
+
                 <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
                   <Link to="/student" className="btn-secondary">
                     Cancel
                   </Link>
-                  <button type="submit" className="btn-primary">
-                    <ShieldCheck size={16} /> Submit for verification
+                  <button type="submit" className="btn-primary" disabled={submitting}>
+                    <ShieldCheck size={16} />
+                    {submitting ? 'Submitting…' : 'Submit for verification'}
                   </button>
                 </div>
               </>

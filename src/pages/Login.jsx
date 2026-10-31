@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { COLLEGE } from '../config.js'
 import { useApp } from '../lib/store.jsx'
+import LoadingScreen from '../components/LoadingScreen.jsx'
 
 const features = [
   {
@@ -34,7 +35,7 @@ const features = [
 ]
 
 export default function Login() {
-  const { user, login, resetDemo } = useApp()
+  const { user, loading, login, resetDemo } = useApp()
   const navigate = useNavigate()
 
   const [role, setRole] = useState('student')
@@ -42,7 +43,10 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [resetting, setResetting] = useState(false)
 
+  if (loading) return <LoadingScreen />
   if (user) {
     return <Navigate to={user.role === 'office' ? '/office' : '/student'} replace />
   }
@@ -56,7 +60,7 @@ export default function Login() {
 
   function fillDemo() {
     if (role === 'student') {
-      setIdentifier('CS21001')
+      setIdentifier('5241412001')
       setPassword('student123')
     } else {
       setIdentifier('office')
@@ -65,18 +69,37 @@ export default function Login() {
     setError('')
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
+    if (busy) return
     if (!identifier.trim() || !password) {
       setError('Please enter both your credentials.')
       return
     }
-    const result = login(role, identifier, password)
+    setBusy(true)
+    setError('')
+    const result = await login(role, identifier, password)
+    setBusy(false)
     if (!result.ok) {
       setError(result.error)
       return
     }
     navigate(role === 'office' ? '/office' : '/student', { replace: true })
+  }
+
+  async function handleReset() {
+    if (resetting) return
+    setResetting(true)
+    setError('')
+    try {
+      await resetDemo()
+      setIdentifier('')
+      setPassword('')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setResetting(false)
+    }
   }
 
   return (
@@ -231,8 +254,8 @@ export default function Login() {
                 </div>
               )}
 
-              <button type="submit" className="btn-primary w-full">
-                Sign in <ArrowRight size={17} />
+              <button type="submit" className="btn-primary w-full" disabled={busy}>
+                {busy ? 'Signing in…' : 'Sign in'} {!busy && <ArrowRight size={17} />}
               </button>
             </form>
           </div>
@@ -253,7 +276,7 @@ export default function Login() {
             <div className="mt-2 grid gap-1 font-mono text-xs text-slate-600">
               {role === 'student' ? (
                 <>
-                  <span>Roll: CS21001</span>
+                  <span>Roll: 5241412001</span>
                   <span>Password: student123</span>
                 </>
               ) : (
@@ -270,15 +293,11 @@ export default function Login() {
 
           <button
             type="button"
-            onClick={() => {
-              resetDemo()
-              setIdentifier('')
-              setPassword('')
-              setError('')
-            }}
-            className="mt-3 w-full text-center text-[11px] font-medium text-slate-400 hover:text-slate-600"
+            onClick={handleReset}
+            disabled={resetting}
+            className="mt-3 w-full text-center text-[11px] font-medium text-slate-400 hover:text-slate-600 disabled:opacity-60"
           >
-            Reset demo data
+            {resetting ? 'Resetting demo data…' : 'Reset demo data'}
           </button>
         </div>
       </main>

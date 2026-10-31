@@ -1,6 +1,10 @@
 import { COLLEGE } from '../config.js'
 import { amount, formatDate, methodLabel } from './format.js'
-import { RECEIPT_TEMPLATE_PATH, TEMPLATE_FIELDS } from './receiptTemplate.js'
+import {
+  RECEIPT_TEMPLATE_PATH,
+  TEMPLATE_FIELDS,
+  TEMPLATE_SIGNATURE,
+} from './receiptTemplate.js'
 
 const A4 = [595.28, 841.89]
 
@@ -87,6 +91,27 @@ function fitSize(text, font, size, maxWidth = Infinity) {
   return current
 }
 
+// Handwritten-style signature strokes (SVG paths, drawn as a line).
+const SIGNATURE_PATHS = [
+  'M 2 26 C 8 6, 16 2, 22 14 C 27 24, 18 34, 15 24 C 12 14, 30 4, 38 18 C 42 25, 36 30, 33 23 C 30 16, 48 6, 57 18 C 61 24, 55 30, 52 22 C 49 14, 66 4, 75 16 C 79 22, 74 30, 70 22 C 66 14, 82 6, 91 18 C 95 24, 90 32, 86 24 C 82 16, 100 6, 112 16 C 118 21, 122 28, 130 20 C 136 14, 142 18, 148 26',
+  'M 10 36 C 50 44, 100 30, 142 34',
+]
+
+function drawSignature(page, rgb, LineCapStyle, options = {}) {
+  const { x, y, scale = 1 } = options
+  const color = options.color || rgb(0.12, 0.2, 0.55)
+  for (const path of SIGNATURE_PATHS) {
+    page.drawSvgPath(path, {
+      x,
+      y,
+      scale,
+      borderColor: color,
+      borderWidth: 1.2,
+      borderLineCap: LineCapStyle.Round,
+    })
+  }
+}
+
 async function loadTemplate() {
   const { PDFDocument } = await getPdfLib()
   try {
@@ -102,7 +127,7 @@ async function loadTemplate() {
 }
 
 async function fillTemplate(templateDoc, student, payment) {
-  const { PDFDocument, StandardFonts, rgb } = await getPdfLib()
+  const { PDFDocument, StandardFonts, LineCapStyle, rgb } = await getPdfLib()
   const palette = makePalette(rgb)
   const doc = await PDFDocument.create()
   const [page] = await doc.copyPages(templateDoc, [0])
@@ -124,11 +149,15 @@ async function fillTemplate(templateDoc, student, payment) {
     })
   }
 
+  if (TEMPLATE_SIGNATURE) {
+    drawSignature(page, rgb, LineCapStyle, TEMPLATE_SIGNATURE)
+  }
+
   return doc
 }
 
 async function buildDefaultReceipt(student, payment) {
-  const { PDFDocument, StandardFonts, rgb } = await getPdfLib()
+  const { PDFDocument, StandardFonts, LineCapStyle, rgb } = await getPdfLib()
   const palette = makePalette(rgb)
   const { ink, muted, accent, line, soft, white } = palette
 
@@ -156,19 +185,25 @@ async function buildDefaultReceipt(student, payment) {
     color: soft,
   })
 
-  page.drawText(COLLEGE.name.toUpperCase(), {
+  page.drawText(COLLEGE.headerLine1, {
     x: 60,
-    y: 770,
+    y: 773,
     size: 15,
     font: bold,
     color: ink,
-    maxWidth: 340,
   })
-  page.drawText(COLLEGE.tagline, { x: 60, y: 751, size: 9.5, font, color: muted })
+  page.drawText(COLLEGE.headerLine2, {
+    x: 60,
+    y: 755,
+    size: 10.5,
+    font: bold,
+    color: ink,
+  })
+  page.drawText(COLLEGE.tagline, { x: 60, y: 737, size: 9.5, font, color: muted })
   page.drawText('FEE PAYMENT RECEIPT', {
     x: 60,
-    y: 712,
-    size: 11,
+    y: 708,
+    size: 10.5,
     font: bold,
     color: accent,
   })
@@ -274,6 +309,12 @@ async function buildDefaultReceipt(student, payment) {
     end: { x: width - 70, y: 150 },
     thickness: 0.8,
     color: ink,
+  })
+  drawSignature(page, rgb, LineCapStyle, {
+    x: width - 210,
+    y: 153,
+    scale: 0.92,
+    color: rgb(0.12, 0.2, 0.55),
   })
   page.drawText('Authorised Signatory', {
     x: width - 210 + (140 - font.widthOfTextAtSize('Authorised Signatory', 8)) / 2,

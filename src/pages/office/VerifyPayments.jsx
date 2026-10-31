@@ -26,6 +26,7 @@ export default function VerifyPayments() {
   const [reason, setReason] = useState('')
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
+  const [busy, setBusy] = useState(false)
 
   const studentById = useMemo(
     () => Object.fromEntries(db.students.map((student) => [student.id, student])),
@@ -64,22 +65,39 @@ export default function VerifyPayments() {
     setAction(null)
     setReason('')
     setError('')
+    setBusy(false)
   }
 
-  function confirmVerify() {
-    reviewPayment(target.id, 'verify')
-    setNotice(`Payment of ${currency(target.amount)} verified. A receipt has been generated.`)
-    closeModal()
+  async function confirmVerify() {
+    if (busy) return
+    setBusy(true)
+    setError('')
+    try {
+      await reviewPayment(target.id, 'verify')
+      setNotice(`Payment of ${currency(target.amount)} verified. A receipt has been generated.`)
+      closeModal()
+    } catch (err) {
+      setError(err.message)
+      setBusy(false)
+    }
   }
 
-  function confirmReject() {
+  async function confirmReject() {
+    if (busy) return
     if (reason.trim().length < 5) {
       setError('Please give a short reason (at least 5 characters).')
       return
     }
-    reviewPayment(target.id, 'reject', reason)
-    setNotice(`Payment of ${currency(target.amount)} was rejected.`)
-    closeModal()
+    setBusy(true)
+    setError('')
+    try {
+      await reviewPayment(target.id, 'reject', reason)
+      setNotice(`Payment of ${currency(target.amount)} was rejected.`)
+      closeModal()
+    } catch (err) {
+      setError(err.message)
+      setBusy(false)
+    }
   }
 
   const targetStudent = target ? studentById[target.studentId] : null
@@ -244,11 +262,12 @@ export default function VerifyPayments() {
         description="Approving this payment will generate a receipt for the student."
         footer={
           <>
-            <button onClick={closeModal} className="btn-secondary">
+            <button onClick={closeModal} className="btn-secondary" disabled={busy}>
               Cancel
             </button>
-            <button onClick={confirmVerify} className="btn-success">
-              <ShieldCheck size={16} /> Confirm verification
+            <button onClick={confirmVerify} className="btn-success" disabled={busy}>
+              <ShieldCheck size={16} />
+              {busy ? 'Verifying…' : 'Confirm verification'}
             </button>
           </>
         }
@@ -301,6 +320,7 @@ export default function VerifyPayments() {
               Make sure the reference number matches the college bank statement before
               confirming.
             </p>
+            {error && <p className="text-xs font-medium text-rose-600">{error}</p>}
           </div>
         )}
       </Modal>
@@ -312,11 +332,12 @@ export default function VerifyPayments() {
         description="The student will see your reason on their payments page."
         footer={
           <>
-            <button onClick={closeModal} className="btn-secondary">
+            <button onClick={closeModal} className="btn-secondary" disabled={busy}>
               Cancel
             </button>
-            <button onClick={confirmReject} className="btn-danger">
-              <XCircle size={16} /> Reject payment
+            <button onClick={confirmReject} className="btn-danger" disabled={busy}>
+              <XCircle size={16} />
+              {busy ? 'Rejecting…' : 'Reject payment'}
             </button>
           </>
         }
