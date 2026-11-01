@@ -77,12 +77,12 @@ export default function Login() {
   }
 
   return (
-    <div className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
+    <div className="grid min-h-dvh lg:h-dvh lg:grid-cols-[1.05fr_1fr] lg:overflow-hidden">
       {/* Brand panel */}
-      <aside className="relative hidden overflow-hidden bg-slate-950 p-12 text-white lg:flex lg:flex-col lg:justify-between xl:p-16">
+      <aside className="relative hidden overflow-hidden bg-slate-950 px-10 py-10 text-white lg:flex lg:flex-col lg:justify-between lg:overflow-y-auto xl:px-14 xl:py-12">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-950/80 via-slate-950 to-slate-950" />
-        <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-indigo-600/25 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-emerald-400/10 blur-3xl" />
+        <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-indigo-600/25 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-emerald-400/10 blur-3xl" />
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.07]"
           style={{
@@ -94,34 +94,34 @@ export default function Login() {
 
         <div className="relative">
           <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-500/40">
-              <GraduationCap size={26} />
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-indigo-500 shadow-lg shadow-indigo-500/40">
+              <GraduationCap size={24} />
             </span>
             <div>
-              <p className="text-lg font-semibold tracking-tight">FeePay</p>
+              <p className="text-base font-semibold tracking-tight">FeePay</p>
               <p className="text-xs text-slate-300">{COLLEGE.tagline}</p>
             </div>
           </div>
 
-          <h1 className="mt-16 max-w-lg text-4xl font-bold leading-tight tracking-tight text-white xl:text-5xl">
+          <h1 className="mt-10 max-w-md text-3xl font-bold leading-[1.15] tracking-tight text-white xl:mt-14 xl:max-w-lg xl:text-4xl">
             A simpler, safer way to manage college fees.
           </h1>
-          <p className="mt-5 max-w-md text-sm leading-relaxed text-slate-300">
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-300">
             {COLLEGE.name} — one portal for students to pay fees and for the fee
             section to verify payments and issue receipts.
           </p>
 
-          <ul className="mt-12 space-y-6">
+          <ul className="mt-8 space-y-4 xl:mt-10 xl:space-y-5">
             {features.map((feature) => {
               const Icon = feature.icon
               return (
-                <li key={feature.title} className="flex gap-4">
-                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/10 text-indigo-300 ring-1 ring-inset ring-white/10">
-                    <Icon size={20} />
+                <li key={feature.title} className="flex gap-3.5">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10 text-indigo-300 ring-1 ring-inset ring-white/10">
+                    <Icon size={18} />
                   </span>
                   <div>
                     <p className="text-sm font-semibold text-white">{feature.title}</p>
-                    <p className="mt-1 max-w-sm text-xs leading-relaxed text-slate-300">
+                    <p className="mt-0.5 max-w-sm text-xs leading-relaxed text-slate-300">
                       {feature.text}
                     </p>
                   </div>
@@ -131,7 +131,7 @@ export default function Login() {
           </ul>
         </div>
 
-        <div className="relative mt-16 border-t border-white/10 pt-6">
+        <div className="relative mt-8 border-t border-white/10 pt-5">
           <p className="text-xs text-slate-400">{COLLEGE.address}</p>
           <p className="mt-1 text-xs text-slate-500">
             © {new Date().getFullYear()} {COLLEGE.shortName} Fee Section
@@ -140,12 +140,12 @@ export default function Login() {
       </aside>
 
       {/* Sign-in panel */}
-      <main className="relative flex items-center justify-center px-4 py-12 sm:px-8">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-indigo-50 to-transparent" />
+      <main className="relative flex items-center justify-center px-4 py-8 sm:px-6 lg:overflow-y-auto lg:py-6">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-gradient-to-b from-indigo-50 to-transparent" />
 
         <div className="relative w-full max-w-md">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="grid h-11 w-11 place-items-center rounded-xl bg-indigo-600 text-white shadow-sm">
+          <div className="mb-6 flex items-center gap-3 lg:hidden">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-600 text-white shadow-sm">
               <GraduationCap size={22} />
             </span>
             <div>
@@ -154,16 +154,16 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="card p-6 shadow-lg shadow-slate-900/5 sm:p-9">
-            <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+          <div className="card p-5 shadow-lg shadow-slate-900/5 sm:p-7">
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
               Sign in
             </h2>
-            <p className="mt-1.5 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-500">
               Choose your account type and enter your credentials.
             </p>
 
             <div
-              className="mt-6 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1"
+              className="mt-5 grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1"
               role="tablist"
               aria-label="Account type"
             >
@@ -172,7 +172,7 @@ export default function Login() {
                 role="tab"
                 aria-selected={role === 'student'}
                 onClick={() => switchRole('student')}
-                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
                   role === 'student'
                     ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200'
                     : 'text-slate-500 hover:text-slate-800'
@@ -185,7 +185,7 @@ export default function Login() {
                 role="tab"
                 aria-selected={role === 'office'}
                 onClick={() => switchRole('office')}
-                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+                className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
                   role === 'office'
                     ? 'bg-white text-slate-900 shadow-sm ring-1 ring-slate-200'
                     : 'text-slate-500 hover:text-slate-800'
@@ -195,7 +195,7 @@ export default function Login() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
+            <form onSubmit={handleSubmit} className="mt-5 space-y-3.5" noValidate>
               <div>
                 <label htmlFor="identifier" className="label">
                   {role === 'student' ? 'Roll number or email' : 'Office user ID'}
@@ -257,11 +257,7 @@ export default function Login() {
                 </div>
               )}
 
-              <button
-                type="submit"
-                className="btn-primary w-full py-3"
-                disabled={busy}
-              >
+              <button type="submit" className="btn-primary w-full" disabled={busy}>
                 {busy ? (
                   <>
                     <Loader2 size={17} className="animate-spin" /> Signing in…
@@ -274,16 +270,14 @@ export default function Login() {
               </button>
             </form>
 
-            <div className="mt-6 border-t border-slate-200 pt-5">
-              <p className="text-center text-xs leading-relaxed text-slate-500">
-                Use the roll number and password issued by the fee section.
-                <br />
-                Trouble signing in? Contact the fee section office.
-              </p>
-            </div>
+            <p className="mt-5 border-t border-slate-200 pt-4 text-center text-xs leading-relaxed text-slate-500">
+              Use the roll number and password issued by the fee section.
+              <br />
+              Trouble signing in? Contact the fee section office.
+            </p>
           </div>
 
-          <p className="mt-6 text-center text-xs text-slate-400 lg:hidden">
+          <p className="mt-5 text-center text-xs text-slate-400 lg:hidden">
             {COLLEGE.address}
           </p>
         </div>

@@ -192,14 +192,7 @@ async function buildDefaultReceipt(student, payment) {
     font: bold,
     color: ink,
   })
-  page.drawText(COLLEGE.headerLine2, {
-    x: 60,
-    y: 755,
-    size: 10.5,
-    font: bold,
-    color: ink,
-  })
-  page.drawText(COLLEGE.tagline, { x: 60, y: 737, size: 9.5, font, color: muted })
+  page.drawText(COLLEGE.tagline, { x: 60, y: 752, size: 9.5, font, color: muted })
   page.drawText('FEE PAYMENT RECEIPT', {
     x: 60,
     y: 708,
