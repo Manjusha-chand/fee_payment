@@ -58,17 +58,6 @@ export default function Login() {
     setError('')
   }
 
-  function fillDemo() {
-    if (role === 'student') {
-      setIdentifier('5241412001')
-      setPassword('student123')
-    } else {
-      setIdentifier('office')
-      setPassword('office123')
-    }
-    setError('')
-  }
-
   async function handleSubmit(event) {
     event.preventDefault()
     if (busy) return
@@ -115,14 +104,14 @@ export default function Login() {
             </span>
             <div>
               <p className="text-base font-semibold">FeePay</p>
-              <p className="text-xs text-slate-400">{COLLEGE.tagline}</p>
+              <p className="text-xs text-slate-300">{COLLEGE.tagline}</p>
             </div>
           </div>
 
           <h1 className="mt-16 max-w-md text-4xl font-bold leading-tight tracking-tight">
             A simpler, safer way to manage college fees.
           </h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-400">
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-300">
             {COLLEGE.name} — one portal for students to pay fees and for the fee
             section to verify payments and issue receipts.
           </p>
@@ -137,7 +126,7 @@ export default function Login() {
                   </span>
                   <div>
                     <p className="text-sm font-semibold">{feature.title}</p>
-                    <p className="mt-0.5 max-w-sm text-xs leading-relaxed text-slate-400">
+                    <p className="mt-0.5 max-w-sm text-xs leading-relaxed text-slate-300">
                       {feature.text}
                     </p>
                   </div>
@@ -147,7 +136,7 @@ export default function Login() {
           </ul>
         </div>
 
-        <p className="relative text-xs text-slate-500">
+        <p className="relative text-xs text-slate-400">
           {COLLEGE.address}
         </p>
       </aside>
@@ -210,7 +199,7 @@ export default function Login() {
                   <input
                     id="identifier"
                     className="input pl-10"
-                    placeholder={role === 'student' ? 'CS21001' : 'office'}
+                    placeholder={role === 'student' ? '5241412001' : 'office'}
                     value={identifier}
                     onChange={(event) => setIdentifier(event.target.value)}
                     autoComplete="username"
@@ -260,35 +249,9 @@ export default function Login() {
             </form>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-white/60 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Demo credentials
-              </p>
-              <button
-                type="button"
-                onClick={fillDemo}
-                className="text-xs font-semibold text-indigo-600 hover:text-indigo-700"
-              >
-                Fill {role === 'student' ? 'student' : 'office'} login
-              </button>
-            </div>
-            <div className="mt-2 grid gap-1 font-mono text-xs text-slate-600">
-              {role === 'student' ? (
-                <>
-                  <span>Roll: 5241412001</span>
-                  <span>Password: student123</span>
-                </>
-              ) : (
-                <>
-                  <span>User ID: office</span>
-                  <span>Password: office123</span>
-                </>
-              )}
-            </div>
-            <p className="mt-2 text-[11px] text-slate-400">
-              Demo data is stored in your browser. No real payment is processed.
-            </p>
+          <div className="mt-4 rounded-2xl border border-slate-200 bg-white/70 px-4 py-3 text-center text-xs leading-relaxed text-slate-500">
+            Use the roll number and password issued by the fee section. Trouble
+            signing in? Contact the fee section office.
           </div>
 
           <button
