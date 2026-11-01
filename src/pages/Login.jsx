@@ -108,7 +108,7 @@ export default function Login() {
             </div>
           </div>
 
-          <h1 className="mt-16 max-w-md text-4xl font-bold leading-tight tracking-tight">
+          <h1 className="mt-16 max-w-md text-4xl font-bold leading-tight tracking-tight text-white">
             A simpler, safer way to manage college fees.
           </h1>
           <p className="mt-4 max-w-md text-sm leading-relaxed text-slate-300">
