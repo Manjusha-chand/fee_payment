@@ -1,16 +1,27 @@
 import mongoose from 'mongoose'
 import { app } from '../server/index.js'
 import { connectDb } from '../server/db.js'
+import { Student } from '../server/models.js'
+import { seedDatabase } from '../server/seed.js'
 
 let connecting = null
 
 async function ensureDb() {
   if (mongoose.connection.readyState === 1) return
+
   if (!connecting) {
-    connecting = connectDb().finally(() => {
+    connecting = (async () => {
+      await connectDb()
+
+      if (process.env.AUTO_SEED !== 'false') {
+        const count = await Student.estimatedDocumentCount()
+        if (count === 0) await seedDatabase({ log: () => {} })
+      }
+    })().finally(() => {
       connecting = null
     })
   }
+
   await connecting
 }
 
@@ -38,7 +49,10 @@ export default async function handler(req, res) {
     await ensureDb()
   } catch (error) {
     console.error('Database connection failed:', error.message)
-    res.status(503).json({ error: 'Database unavailable. Please try again.' })
+    res.status(503).json({
+      error:
+        'Database unavailable. Check the MONGODB_URI and MONGODB_DB environment variables in Vercel.',
+    })
     return
   }
 
